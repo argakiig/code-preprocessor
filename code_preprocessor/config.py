@@ -1,4 +1,13 @@
-"""Configuration management for the code preprocessor."""
+"""Configuration management for the code preprocessor.
+
+This module provides configuration management through:
+- A strongly typed configuration dataclass
+- Default values for all settings
+- Path expansion and validation
+- Directory structure management
+- Configuration validation rules
+"""
+
 import os
 from dataclasses import dataclass
 from typing import Optional
@@ -23,24 +32,39 @@ from .constants import (
 class PreprocessorConfig:
     """Configuration for the code preprocessor.
 
+    This class manages all configuration settings for the preprocessor:
+    - Model configuration (vocab size, sequence length)
+    - Training settings (batch size, epochs)
+    - Data processing options (workers, sampling)
+    - File paths and directories
+    - Logging configuration
+    - Experiment tracking settings
+
+    The class provides:
+    - Type checking through dataclass
+    - Automatic path expansion
+    - Configuration validation
+    - Default values for optional settings
+    - Computed properties for derived paths
+
     Attributes:
-        code_path: Path to the source code directory
-        output_dir: Directory to save outputs
-        model_name: Name/path of the model to use
+        code_path: Path to the source code directory to process
+        output_dir: Directory to save outputs (datasets, models)
+        model_name: Name/path of the model to use or fine-tune
         epochs: Number of training epochs
         vocab_size: Size of tokenizer vocabulary
         batch_size: Training batch size
-        gradient_accumulation_steps: Number of gradient accumulation steps
+        gradient_accumulation_steps: Number of steps to accumulate gradients
         max_sequence_length: Maximum sequence length for training
         num_workers: Number of data loading workers
-        cache_dir: Optional cache directory
-        log_level: Logging level
+        cache_dir: Optional cache directory for datasets
+        log_level: Logging level (DEBUG, INFO, etc.)
         log_file: Optional log file path
         skip_dataset: Whether to skip dataset creation
         skip_tokenizer: Whether to skip tokenizer creation
         num_samples: Optional number of samples to use
-        seed: Random seed
-        eval_split: Evaluation split ratio
+        seed: Random seed for reproducibility
+        eval_split: Evaluation split ratio (0-1)
         wandb_project: Weights & Biases project name
     """
 
@@ -64,12 +88,32 @@ class PreprocessorConfig:
     wandb_project: str = DEFAULT_WANDB_PROJECT
 
     def __post_init__(self) -> None:
-        """Validate configuration after initialization."""
+        """Validate configuration after initialization.
+
+        This method is automatically called after dataclass initialization to:
+        - Validate all configuration values
+        - Expand user paths in file paths
+
+        Raises:
+            ValueError: If any configuration values are invalid
+            FileNotFoundError: If required paths don't exist
+        """
         self.validate()
         self._expand_paths()
 
     def validate(self) -> None:
-        """Validate configuration values."""
+        """Validate configuration values.
+
+        This method checks:
+        - Positive values for numeric settings
+        - Valid ranges for ratios and splits
+        - Existence of required paths
+        - Non-negative worker counts
+
+        Raises:
+            ValueError: If any values are invalid
+            FileNotFoundError: If code_path doesn't exist
+        """
         if self.vocab_size <= 0:
             raise ValueError("vocab_size must be positive")
 
@@ -92,7 +136,15 @@ class PreprocessorConfig:
             raise ValueError("epochs must be positive")
 
     def _expand_paths(self) -> None:
-        """Expand user paths (~) in path fields."""
+        """Expand user paths (~) in path fields.
+
+        This method expands all path fields to their absolute paths,
+        handling user home directory expansion (~) for:
+        - code_path
+        - output_dir
+        - cache_dir (if specified)
+        - log_file (if specified)
+        """
         self.code_path = os.path.expanduser(self.code_path)
         self.output_dir = os.path.expanduser(self.output_dir)
         if self.cache_dir:
@@ -102,15 +154,29 @@ class PreprocessorConfig:
 
     @property
     def dataset_dir(self) -> str:
-        """Get the dataset directory path."""
+        """Get the dataset directory path.
+
+        Returns:
+            Path to the directory where datasets will be stored,
+            as a subdirectory of output_dir
+        """
         return os.path.join(self.output_dir, "dataset")
 
     @property
     def model_dir(self) -> str:
-        """Get the model directory path."""
+        """Get the model directory path.
+
+        Returns:
+            Path to the directory where models will be stored,
+            as a subdirectory of output_dir
+        """
         return os.path.join(self.output_dir, "model")
 
     @property
     def tokenizer_path(self) -> str:
-        """Get the tokenizer file path."""
+        """Get the tokenizer file path.
+
+        Returns:
+            Path to the tokenizer.json file within the dataset directory
+        """
         return os.path.join(self.dataset_dir, "tokenizer.json")

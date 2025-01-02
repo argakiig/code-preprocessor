@@ -1,4 +1,12 @@
-"""Main entry point for the code preprocessor."""
+"""Main entry point for the code preprocessor.
+
+This module serves as the entry point for the code preprocessing pipeline:
+- Handles command line argument parsing
+- Loads configuration from YAML files
+- Sets up logging and monitoring
+- Initializes Weights & Biases tracking
+- Creates necessary output directories
+"""
 
 import logging
 import os
@@ -13,7 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args() -> Dict[str, Any]:
-    """Parse command line arguments."""
+    """Parse command line arguments for the code preprocessor.
+
+    This function sets up the argument parser with:
+    - Required config file path
+    - Optional code directory path
+    - Help messages for each argument
+
+    Returns:
+        Dictionary containing the parsed arguments with their values
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description="Code preprocessor for training language models")
@@ -24,7 +41,21 @@ def parse_args() -> Dict[str, Any]:
 
 
 def main() -> None:
-    """Main entry point."""
+    """Main entry point for the code preprocessing pipeline.
+
+    This function orchestrates the preprocessing pipeline by:
+    - Parsing command line arguments
+    - Loading and validating configuration
+    - Setting up logging infrastructure
+    - Initializing experiment tracking with W&B
+    - Creating output directories
+
+    The function handles all initialization steps and ensures
+    proper error handling and logging throughout the process.
+
+    Raises:
+        Exception: If initialization fails for any reason
+    """
     try:
         # Parse arguments
         args = parse_args()

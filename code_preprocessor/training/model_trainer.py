@@ -1,4 +1,13 @@
-"""Module for training language models on code with optimized configurations."""
+"""Module for training language models on code with optimized configurations.
+
+This module provides functionality for training language models specifically on code data,
+with support for:
+- Quantization and LoRA for efficient training
+- Custom tokenization for code
+- Automatic dataset preparation
+- GPU memory optimization
+- Sequence-to-sequence training setup
+"""
 
 import gc
 import logging
@@ -23,13 +32,29 @@ logger = logging.getLogger(__name__)
 
 
 class RustProcessingConfig(PretrainedConfig):
-    """Configuration class for Rust code processing."""
+    """Configuration class for Rust code processing.
+
+    This class extends PretrainedConfig to provide Rust-specific model configuration
+    options. It ensures compatibility with the HuggingFace training pipeline while
+    maintaining Rust-specific processing requirements.
+    """
 
     model_type: str = "rust_code"
 
 
 class ModelTrainer:
-    """Trainer for code models using either HuggingFace models or local models."""
+    """Trainer for code models using either HuggingFace models or local models.
+
+    This class handles the complete training pipeline for code language models, including:
+    - Model initialization with optional quantization and LoRA
+    - Dataset preparation and tokenization
+    - Training loop management
+    - Memory optimization for GPU training
+    - Model saving and evaluation
+
+    The trainer supports both full model training and parameter-efficient training
+    methods like LoRA, making it suitable for various hardware configurations.
+    """
 
     def __init__(
         self,
@@ -44,19 +69,22 @@ class ModelTrainer:
         eval_dataset: Optional[Dataset] = None,
         train_dataset: Optional[Dataset] = None,
     ) -> None:
-        """Initialize the model trainer.
+        """Initialize the model trainer with specified configuration.
 
         Args:
             model_name_or_path: Path or name of the model to load
             tokenizer: The tokenizer to use for processing text
             output_dir: Directory for saving outputs
             sequence_length: Maximum sequence length for training
-            training_args: Optional training arguments
-            quant_config: Optional quantization configuration
-            lora_config: Optional LoRA configuration
-            model_config: Optional model configuration
+            training_args: Optional HuggingFace training arguments
+            quant_config: Optional quantization configuration for reduced memory usage
+            lora_config: Optional LoRA configuration for parameter-efficient training
+            model_config: Optional model configuration overrides
             eval_dataset: Optional evaluation dataset
             train_dataset: Optional training dataset
+
+        Raises:
+            Exception: If model loading fails or configuration is invalid
         """
         self.output_dir = os.path.expanduser(output_dir)
         self.tokenizer = tokenizer
@@ -125,7 +153,22 @@ class ModelTrainer:
     def _prepare_sample_static(
         example: Dict[str, Any], tokenizer: RustTokenizer, max_length: int
     ) -> Dict[str, Tensor]:
-        """Static method to prepare a single sample for training."""
+        """Prepare a single sample for training by combining documentation and code.
+
+        This method handles the core preprocessing of each example, including:
+        - Adding special tokens for documentation and code sections
+        - Truncating sequences to max_length
+        - Creating attention masks and labels
+        - Handling padding and empty samples
+
+        Args:
+            example: Dictionary containing the sample data
+            tokenizer: The tokenizer to use for processing
+            max_length: Maximum sequence length to use
+
+        Returns:
+            Dictionary containing processed tensors ready for training
+        """
         try:
             # Initialize empty list for input tokens
             input_ids: List[int] = []
@@ -200,7 +243,20 @@ class ModelTrainer:
             }
 
     def prepare_dataset(self, dataset: Dataset) -> Dataset:
-        """Prepare dataset for training by combining doc and code."""  # noqa: D202
+        """Prepare dataset for training by combining documentation and code.
+
+        This method transforms the raw dataset into a format suitable for training by:
+        - Processing each example with _prepare_sample_static
+        - Handling batched processing for efficiency
+        - Removing unnecessary columns
+        - Managing memory usage during processing
+
+        Args:
+            dataset: The raw dataset to process
+
+        Returns:
+            Processed dataset ready for training
+        """  # noqa: D202
 
         # Create a pickleable transform function
         def transform_fn(examples: Dict[str, Any]) -> Dict[str, Tensor]:
@@ -216,7 +272,20 @@ class ModelTrainer:
         )
 
     def prepare_model(self, model: Any) -> Any:
-        """Prepare model for training with proper device handling."""
+        """Prepare model for training with optimized memory usage.
+
+        This method configures the model for efficient training by:
+        - Clearing GPU cache
+        - Enabling gradient checkpointing if available
+        - Disabling caching during training
+        - Setting proper training modes
+
+        Args:
+            model: The model to prepare
+
+        Returns:
+            Prepared model ready for training
+        """
         # Clear GPU cache
         torch.cuda.empty_cache()
         gc.collect()
@@ -234,7 +303,17 @@ class ModelTrainer:
         return model
 
     def train(self) -> None:
-        """Train the model on the given dataset."""
+        """Train the model on the prepared dataset.
+
+        This method handles the complete training process including:
+        - Dataset preparation
+        - Progress logging
+        - Error handling
+        - Memory management during training
+
+        Raises:
+            Exception: If training fails or datasets are invalid
+        """
         logger.info("Starting training")
 
         try:

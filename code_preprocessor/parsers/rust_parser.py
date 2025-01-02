@@ -1,4 +1,12 @@
-"""Module for parsing Rust source code into structured code blocks."""
+"""Module for parsing Rust source code into structured code blocks.
+
+This module provides a parser for Rust source code that:
+- Extracts code blocks and their documentation
+- Handles various Rust syntax patterns (enums, traits, impls, etc.)
+- Maintains module hierarchy information
+- Tracks source code locations
+- Supports both inline and block documentation styles
+"""
 
 import re
 from typing import Dict, List, Optional, Tuple
@@ -10,9 +18,14 @@ class RustParser:
     """Parser class that handles Rust code processing.
 
     This class is responsible for:
-    1. Processing Rust source files
-    2. Extracting code blocks and documentation
-    3. Parsing Rust syntax patterns
+    1. Processing Rust source files into structured blocks
+    2. Extracting documentation (both //! and /** style)
+    3. Parsing Rust syntax patterns (functions, structs, etc.)
+    4. Maintaining module hierarchy information
+    5. Tracking source code locations accurately
+
+    The parser uses regular expressions optimized for Rust syntax and
+    maintains internal caches for better performance.
 
     Example:
         ```python
@@ -21,33 +34,33 @@ class RustParser:
         ```
     """
 
-    # Rust code patterns
+    # Rust code patterns with named capture groups for documentation and code
     PATTERNS = [
-        # Enum definitions
+        # Enum definitions with optional pub and documentation
         (
             r"(?P<doc>(?://[!/][^\n]*\n|/\*[!*][\s\S]*?\*/)\s*)?(?P<code>pub\s+enum\s+"
             r"(?P<n>\w+)[\s\S]*?(?=\n\n|\Z))",
             "enum",
         ),
-        # Impl blocks
+        # Impl blocks with optional documentation
         (
             r"(?P<doc>(?://[!/][^\n]*\n|/\*[!*][\s\S]*?\*/)\s*)?(?P<code>impl\s+"
             r"(?P<n>\w+)[\s\S]*?(?=\n\n|\Z))",
             "impl",
         ),
-        # Functions
+        # Functions with optional pub and documentation
         (
             r"(?P<doc>(?://[!/][^\n]*\n|/\*[!*][\s\S]*?\*/)\s*)?(?P<code>(?:pub\s+)?fn\s+"
             r"(?P<n>\w+)[\s\S]*?(?=\n\n|\Z))",
             "function",
         ),
-        # Structs
+        # Structs with optional pub and documentation
         (
             r"(?P<doc>(?://[!/][^\n]*\n|/\*[!*][\s\S]*?\*/)\s*)?(?P<code>pub\s+struct\s+"
             r"(?P<n>\w+)[\s\S]*?(?=\n\n|\Z))",
             "struct",
         ),
-        # Traits
+        # Traits with optional pub and documentation
         (
             r"(?P<doc>(?://[!/][^\n]*\n|/\*[!*][\s\S]*?\*/)\s*)?(?P<code>pub\s+trait\s+"
             r"(?P<n>\w+)[\s\S]*?(?=\n\n|\Z))",
@@ -58,9 +71,12 @@ class RustParser:
     def __init__(self) -> None:
         """Initialize the RustParser.
 
-        Compiles regex patterns and initializes caches for better performance.
+        This method:
+        - Compiles regex patterns for better performance
+        - Initializes the module path cache
+        - Sets up pattern matching for different Rust code blocks
         """
-        # Compile patterns once during initialization
+        # Compile patterns once during initialization for better performance
         self.compiled_patterns = [
             (re.compile(pattern, re.MULTILINE), block_type) for pattern, block_type in self.PATTERNS
         ]
@@ -71,7 +87,21 @@ class RustParser:
     def _get_line_numbers(
         content: str, match: re.Match, group_name: Optional[str] = None
     ) -> Tuple[int, int]:
-        """Get the start and end line numbers for a match or a specific group."""
+        """Get the start and end line numbers for a match or a specific group.
+
+        This method calculates accurate line numbers by:
+        - Counting newlines up to the match position
+        - Handling both full matches and named group matches
+        - Adjusting for 1-based line numbering
+
+        Args:
+            content: The full source code content
+            match: The regex match object
+            group_name: Optional name of the group to get line numbers for
+
+        Returns:
+            Tuple of (start_line, end_line) in 1-based numbering
+        """
         if group_name and group_name in match.groupdict():
             start_idx = match.start(group_name)
             end_idx = match.end(group_name)
@@ -89,7 +119,18 @@ class RustParser:
     def _extract_module_path(content: str, current_pos: int) -> str:
         """Extract the module path from the code.
 
-        Looks at mod declarations and use statements before the current position.
+        This method determines the full module path by:
+        - Finding all mod declarations before the current position
+        - Analyzing use statements for crate references
+        - Building the complete path from crate root
+        - Handling self/super references correctly
+
+        Args:
+            content: The full source code content
+            current_pos: Current position in the source code
+
+        Returns:
+            Full module path (e.g., crate::module::submodule)
         """
         # Find all mod declarations before this position
         mod_pattern = r"(?:pub\s+)?mod\s+(\w+)\s*{?"
@@ -113,11 +154,19 @@ class RustParser:
     def parse(self, content: str) -> List[CodeBlock]:
         """Parse Rust source code content into a list of code blocks.
 
+        This method processes the source code by:
+        - Matching against defined Rust syntax patterns
+        - Extracting documentation and code content
+        - Determining accurate line numbers
+        - Building module paths for each block
+        - Creating CodeBlock instances with full metadata
+
         Args:
             content: The Rust source code content to parse
 
         Returns:
-            A list of CodeBlock instances representing the parsed code blocks
+            List of CodeBlock instances, each representing a parsed code block
+            with its documentation and location information
         """
         blocks = []
         for pattern, block_type in self.compiled_patterns:
