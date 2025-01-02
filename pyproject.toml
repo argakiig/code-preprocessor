@@ -28,7 +28,7 @@ dependencies = [
     "tokenizers==0.21.0",
     "datasets==2.15.0",
     "wandb==0.19.1",
-    "tqdm==4.66.1",
+    "tqdm==4.66.3",
     "PyYAML==6.0.1",
     "typing-extensions>=4.8.0",
     "torch>=2.1.1",
