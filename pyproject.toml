@@ -35,6 +35,10 @@ dependencies = [
     "accelerate==0.26.0",
     "bitsandbytes==0.45.0",
     "peft==0.7.0",
+    "safetensors>=0.4.1",
+    "sentencepiece>=0.1.99",
+    "protobuf>=4.25.1",
+    "tensorboard>=2.15.1",
 ]
 
 [project.optional-dependencies]
@@ -46,13 +50,19 @@ dev = [
     "black==23.11.0",
     "isort==5.12.0",
     "flake8==6.1.0",
+    "flake8-docstrings==1.7.0",
+    "flake8-bugbear==23.11.28",
+    "flake8-comprehensions==3.14.0",
     "pylint==3.0.2",
     "mypy==1.7.1",
     "types-PyYAML==6.0.12.12",
     "types-tqdm==4.66.0.2",
+    "types-protobuf>=4.24.0.4",
     "pre-commit==3.5.0",
     "ipython==8.17.2",
     "ipdb==0.13.13",
+    "build>=1.0.3",
+    "twine>=4.0.2",
 ]
 all = [
     "code-preprocessor[dev]"

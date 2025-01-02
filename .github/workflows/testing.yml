@@ -6,97 +6,150 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  PYTHON_VERSION: '3.10'
+  PIP_CACHE_DIR: ~/.cache/pip
+  PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
+  PACKAGE_NAME: code-preprocessor
+
 jobs:
-  format:
-    name: Code Formatting
+  setup:
+    name: Setup Dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-        continue-on-error: false
+      - name: Cache virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
+
+  format:
+    name: Code Formatting
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Restore virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
+      - name: Cache pre-commit
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.PRE_COMMIT_CACHE_DIR }}
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Check black formatting
         run: |
           black --check .
-        continue-on-error: false
       - name: Check import sorting
         run: |
           isort --check-only --diff .
-        continue-on-error: false
 
   lint:
     name: Linting
-    needs: [format]
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-        continue-on-error: false
+      - name: Restore virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
       - name: Run flake8
         run: |
-          flake8 code_preprocessor/
-        continue-on-error: false
+          flake8 ${{ env.PACKAGE_NAME }}/
       - name: Run pylint
         run: |
-          pylint code_preprocessor/
-        continue-on-error: false
+          pylint ${{ env.PACKAGE_NAME }}/
 
   type-check:
     name: Type Checking
-    needs: [lint]
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-        continue-on-error: false
+      - name: Restore virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
+      - name: Cache mypy
+        uses: actions/cache@v3
+        with:
+          path: ~/.mypy_cache
+          key: mypy-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('**/*.py') }}
       - name: Run mypy
         run: |
-          mypy code_preprocessor/
-        continue-on-error: false
+          mypy ${{ env.PACKAGE_NAME }}/
 
   test:
     name: Run Tests (CPU)
-    needs: [type-check]
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-        continue-on-error: false
+      - name: Restore virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
+      - name: Cache pytest
+        uses: actions/cache@v3
+        with:
+          path: |
+            .pytest_cache
+            .coverage
+          key: pytest-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('**/*.py') }}
       - name: Run tests
         run: |
           pytest --cov --cov-report=xml
-        continue-on-error: false
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -112,21 +165,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-        continue-on-error: false
+      - name: Restore virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}
       - name: Build package
         run: |
           python -m build
-        continue-on-error: false
       - name: Check wheel and sdist
         run: |
           twine check dist/*
-        continue-on-error: false
 
   compatibility:
     name: Python Compatibility
@@ -143,12 +197,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+      - name: Cache virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.PIP_CACHE_DIR }}
+            .venv
+            ~/.local
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-        continue-on-error: false
+      - name: Cache pytest
+        uses: actions/cache@v3
+        with:
+          path: |
+            .pytest_cache
+            .coverage
+          key: pytest-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('**/*.py') }}
       - name: Run tests
         run: |
           pytest
-        continue-on-error: false
