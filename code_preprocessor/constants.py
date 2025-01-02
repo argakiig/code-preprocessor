@@ -12,7 +12,7 @@ DEFAULT_EVAL_SPLIT = 0.1
 # File paths and extensions
 RUST_FILE_EXTENSION = ".rs"
 DEFAULT_MODEL_NAME = "codellama/CodeLlama-7b-hf"
-DEFAULT_OUTPUT_DIR = "~/datasets/rust-model2"
+DEFAULT_OUTPUT_DIR = "~/datasets/rust-model"
 
 # Training
 DEFAULT_SEED = 42

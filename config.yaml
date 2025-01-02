@@ -1,6 +1,6 @@
 # Model configuration
 model:
-  name: "codellama/CodeLlama-7b-hf"
+  name: "deepseek-ai/deepseek-coder-6.7b-instruct"
   vocab_size: 50000
   max_sequence_length: 256
 
@@ -15,7 +15,7 @@ training:
 
 # Paths
 paths:
-  output_dir: "./output"
+  output_dir: "~/.models/deepseek-coder-6.7b-instruct"
   cache_dir: "~/.cache/huggingface"
 
 # Logging
@@ -25,7 +25,7 @@ logging:
 
 # Weights & Biases
 wandb:
-  project: "CodeLlama-7b-hf-new"
+  project: "lets-go-deepseek-coder-6.7b-instruct"
 
 # GPU Configuration
 gpu:
