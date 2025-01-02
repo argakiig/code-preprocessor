@@ -175,10 +175,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to commit changes
+      pull-requests: write  # Needed to create pull requests
     steps:
       - uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0  # Fetch all history for proper versioning
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for changes
         id: check_changes
