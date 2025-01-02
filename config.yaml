@@ -1,0 +1,34 @@
+# Model configuration
+model:
+  name: "codellama/CodeLlama-7b-hf"
+  vocab_size: 50000
+  max_sequence_length: 256
+
+# Training configuration
+training:
+  batch_size: 2
+  num_workers: 8
+  epochs: 3
+  gradient_accumulation_steps: 1
+  eval_split: 0.1
+  seed: 42
+
+# Paths
+paths:
+  output_dir: "./output"
+  cache_dir: "~/.cache/huggingface"
+
+# Logging
+logging:
+  level: "INFO"
+  file: "logs/training.log"
+
+# Weights & Biases
+wandb:
+  project: "CodeLlama-7b-hf-new"
+
+# GPU Configuration
+gpu:
+  device: "cuda"
+  precision: "fp16"
+  memory_efficient: true

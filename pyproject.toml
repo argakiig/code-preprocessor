@@ -1,0 +1,144 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "code-preprocessor"
+version = "0.1.0"
+description = "A machine learning pipeline for preprocessing and training models on source code"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+keywords = ["machine learning", "code preprocessing", "tokenization", "rust"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy<2.0.0",
+    "transformers==4.47.1",
+    "tokenizers==0.21.0",
+    "datasets==2.15.0",
+    "wandb==0.19.1",
+    "tqdm==4.66.1",
+    "PyYAML==6.0.1",
+    "typing-extensions>=4.8.0",
+    "torch>=2.1.1",
+    "accelerate==0.26.0",
+    "bitsandbytes==0.45.0",
+    "peft==0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.3",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.12.0",
+    "coverage==7.3.2",
+    "black==23.11.0",
+    "isort==5.12.0",
+    "flake8==6.1.0",
+    "pylint==3.0.2",
+    "mypy==1.7.1",
+    "types-PyYAML==6.0.12.12",
+    "types-tqdm==4.66.0.2",
+    "pre-commit==3.5.0",
+    "ipython==8.17.2",
+    "ipdb==0.13.13",
+]
+all = [
+    "code-preprocessor[dev]"
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/code-preprocessor"
+Documentation = "https://github.com/yourusername/code-preprocessor#readme"
+Repository = "https://github.com/yourusername/code-preprocessor.git"
+Issues = "https://github.com/yourusername/code-preprocessor/issues"
+
+[project.scripts]
+code-preprocess = "code_preprocessor.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["code_preprocessor"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 100
+known_first_party = ["code_preprocessor"]
+known_third_party = ["torch", "transformers", "datasets", "wandb", "tqdm", "yaml", "pytest"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=code_preprocessor --cov-report=term-missing"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+branch = true
+source = ["code_preprocessor"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
+ignore_errors = true
+omit = ["tests/*", "setup.py"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "torch.*",
+    "transformers.*",
+    "datasets.*",
+    "wandb.*",
+    "tqdm.*",
+    "yaml.*",
+    "pytest.*",
+    "tokenizers.*",
+    "peft.*",
+    "bitsandbytes.*"
+]
+ignore_missing_imports = true
+
+exclude = ["wandb", "output", "config.yaml"]

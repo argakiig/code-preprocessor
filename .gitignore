@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+wandb
+
+logs
+output*
+
+.mypy_cache
+.pytest_cache
+.coverage
+.cursor*
+.vscode*
