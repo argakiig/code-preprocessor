@@ -58,6 +58,7 @@ dev = [
     "types-PyYAML==6.0.12.20241230",
     "types-tqdm==4.67.0.20241221",
     "types-protobuf>=4.24.0.4",
+    "types-setuptools==75.6.0.20241223",
     "pre-commit==3.5.0",
     "ipython==8.17.2",
     "ipdb==0.13.13",

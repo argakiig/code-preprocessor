@@ -57,6 +57,9 @@ FROM base as test
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Install isort in system Python path
+RUN python3.10 -m pip install --no-cache-dir isort==5.13.2
+
 # Copy the source code
 COPY . .
 
