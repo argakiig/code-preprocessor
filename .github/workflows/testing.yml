@@ -122,8 +122,10 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           fail_ci_if_error: true
+          verbose: true
 
   build:
     name: Build Package
