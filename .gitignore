@@ -13,3 +13,5 @@ output*
 .coverage
 .cursor*
 .vscode*
+
+config.yaml

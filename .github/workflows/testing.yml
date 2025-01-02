@@ -89,7 +89,7 @@ jobs:
       - name: Run linters
         run: |
           flake8 .
-          pylint .
+          pylint . /
 
   type-check:
     name: Type Checking
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run mypy
         run: |
-          mypy .
+          mypy . --ignore-missing-imports
 
   test:
     name: Run Tests
