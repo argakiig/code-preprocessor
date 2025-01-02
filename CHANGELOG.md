@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [v0.1.0] - 2025-01-02
+
+### Added
 - Initial project setup with Python 3.10+ support
 - Docker-based CI/CD pipeline with GitHub Actions
 - Code quality tools integration:
