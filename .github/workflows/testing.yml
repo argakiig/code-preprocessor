@@ -9,19 +9,19 @@ on:
 env:
   PYTHON_VERSION: '3.10'
   PACKAGE_NAME: code-preprocessor
-  DOCKER_IMAGE: code-preprocessor-builder
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-image:
-    name: Build Docker Image
+  build-images:
+    name: Build Docker Images
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+      test_image_tag: ${{ steps.meta-test.outputs.tags }}
+      prod_image_tag: ${{ steps.meta-prod.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,28 +32,46 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
-        id: meta
+      - name: Extract metadata for test image
+        id: meta-test
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-test
+
+      - name: Build and push test image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: builder
+          push: true
+          tags: ${{ steps.meta-test.outputs.tags }}
+          labels: ${{ steps.meta-test.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-test:latest
+          cache-to: type=inline
+
+      - name: Extract metadata for production image
+        id: meta-prod
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
+      - name: Build and push production image
         uses: docker/build-push-action@v5
         with:
           context: .
+          target: production
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-prod.outputs.tags }}
+          labels: ${{ steps.meta-prod.outputs.labels }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
 
   format:
     name: Code Formatting
-    needs: [build-image]
+    needs: [build-images]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build-image.outputs.image_tag }}
+      image: ${{ needs.build-images.outputs.test_image_tag }}
     steps:
       - name: Check formatting
         run: |
@@ -62,10 +80,10 @@ jobs:
 
   lint:
     name: Linting
-    needs: [build-image]
+    needs: [build-images]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build-image.outputs.image_tag }}
+      image: ${{ needs.build-images.outputs.test_image_tag }}
     steps:
       - name: Run linters
         run: |
@@ -74,10 +92,10 @@ jobs:
 
   type-check:
     name: Type Checking
-    needs: [build-image]
+    needs: [build-images]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build-image.outputs.image_tag }}
+      image: ${{ needs.build-images.outputs.test_image_tag }}
     steps:
       - name: Run mypy
         run: |
@@ -85,10 +103,10 @@ jobs:
 
   test:
     name: Run Tests
-    needs: [build-image]
+    needs: [build-images]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build-image.outputs.image_tag }}
+      image: ${{ needs.build-images.outputs.test_image_tag }}
     steps:
       - name: Run tests
         run: |
@@ -104,7 +122,7 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.build-image.outputs.image_tag }}
+      image: ${{ needs.build-images.outputs.test_image_tag }}
     steps:
       - name: Build and check package
         run: |
