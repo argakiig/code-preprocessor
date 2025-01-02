@@ -54,7 +54,7 @@ dev = [
     "flake8-bugbear==23.11.28",
     "flake8-comprehensions==3.14.0",
     "pylint==3.0.2",
-    "mypy==1.7.1",
+    "mypy==1.14.1",
     "types-PyYAML==6.0.12.12",
     "types-tqdm==4.66.0.2",
     "types-protobuf>=4.24.0.4",
