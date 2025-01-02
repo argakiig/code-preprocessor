@@ -1,0 +1,29 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  workflow_dispatch:  # Allow manual trigger
+
+# Default permissions
+permissions: read-all
+
+env:
+  PACKAGE_NAME: code-preprocessor
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  cleanup-images:
+    name: Cleanup Container Images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write  # Needed for deleting images
+    steps:
+      - name: Delete untagged images
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: ${{ env.PACKAGE_NAME }}
+          package-type: 'container'
+          min-versions-to-keep: 1
+          delete-only-untagged-versions: true
