@@ -39,6 +39,7 @@ class PreprocessorConfig:
     - File paths and directories
     - Logging configuration
     - Experiment tracking settings
+    - GPU settings (device, precision, memory efficiency)
 
     The class provides:
     - Type checking through dataclass
@@ -66,6 +67,9 @@ class PreprocessorConfig:
         seed: Random seed for reproducibility
         eval_split: Evaluation split ratio (0-1)
         wandb_project: Weights & Biases project name
+        gpu_device: GPU device to use (e.g., "cuda")
+        gpu_precision: Training precision ("fp16", "bf16", etc.)
+        gpu_memory_efficient: Whether to use memory-efficient training
     """
 
     code_path: str
@@ -86,6 +90,9 @@ class PreprocessorConfig:
     seed: int = DEFAULT_SEED
     eval_split: float = DEFAULT_EVAL_SPLIT
     wandb_project: str = DEFAULT_WANDB_PROJECT
+    gpu_device: str = "cuda"
+    gpu_precision: str = "fp16"
+    gpu_memory_efficient: bool = True
 
     def __post_init__(self) -> None:
         """Validate configuration after initialization.

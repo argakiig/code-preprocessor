@@ -8,6 +8,7 @@ This module serves as the entry point for the code preprocessing pipeline:
 - Creates necessary output directories
 """
 
+import argparse
 import logging
 import os
 import sys
@@ -31,8 +32,7 @@ def parse_args() -> Dict[str, Any]:
 
     Returns:
         Dictionary of parsed arguments
-    """
-    import argparse  # noqa: C0415
+    """  # noqa: D202
 
     parser = argparse.ArgumentParser(description="Train a code model")
     parser.add_argument("--config", type=str, help="Path to YAML configuration file")
@@ -149,6 +149,8 @@ def main() -> None:
             setup_gpu_training()
             gpu_config = GPU4070Config(
                 output_dir=config.model_dir,
+                precision=config.gpu_precision,
+                memory_efficient=config.gpu_memory_efficient,
             )
             # Initialize trainer
             trainer = ModelTrainer(

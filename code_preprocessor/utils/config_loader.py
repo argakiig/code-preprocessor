@@ -9,14 +9,40 @@ This module provides utilities for:
 """
 
 import os
+import random
 from typing import Any, Dict, Optional
 
+import numpy as np
+import torch
 import yaml
 
 from ..config import PreprocessorConfig
 from .logging import get_logger
 
 logger = get_logger(__name__)
+
+
+def set_universal_seed(seed: int) -> None:
+    """Set random seed for all random number generators.
+
+    This function sets the seed for:
+    - Python's random module
+    - NumPy's random number generator
+    - PyTorch's random number generator (both CPU and CUDA)
+    - CUDA's random number generator if available
+
+    Args:
+        seed: The random seed to use
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    # Optional: You can also make PyTorch deterministic
+    # This might impact performance but ensures reproducibility
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    logger.info("Set universal random seed to %d", seed)
 
 
 def load_yaml_config(config_path: str) -> Dict[str, Any]:
@@ -62,6 +88,7 @@ def create_config_from_yaml(
     - Applying command-line overrides
     - Validating required fields
     - Creating a typed configuration object
+    - Setting universal random seed
 
     The configuration structure supports:
     - Model settings (name, vocab size, sequence length)
@@ -92,6 +119,7 @@ def create_config_from_yaml(
     paths_config = yaml_config.get("paths", {})
     logging_config = yaml_config.get("logging", {})
     wandb_config = yaml_config.get("wandb", {})
+    gpu_config = yaml_config.get("gpu", {})
 
     # Create base config dict with type hints and defaults
     config_dict = {
@@ -115,6 +143,10 @@ def create_config_from_yaml(
         "log_file": logging_config.get("file"),
         # Weights & Biases configuration
         "wandb_project": wandb_config.get("project"),
+        # GPU configuration
+        "gpu_device": gpu_config.get("device", "cuda"),
+        "gpu_precision": gpu_config.get("precision", "fp16"),
+        "gpu_memory_efficient": gpu_config.get("memory_efficient", True),
     }
 
     # Override with any provided arguments
@@ -125,5 +157,10 @@ def create_config_from_yaml(
     if not config_dict["code_path"]:
         raise ValueError("code_path must be provided either in config or as argument")
 
-    # Create and return config, filtering out None values
-    return PreprocessorConfig(**{k: v for k, v in config_dict.items() if v is not None})
+    # Create config object
+    config = PreprocessorConfig(**{k: v for k, v in config_dict.items() if v is not None})
+
+    # Set universal random seed
+    set_universal_seed(config.seed)
+
+    return config

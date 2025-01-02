@@ -41,25 +41,59 @@ code-preprocess --config config.yaml --code-path /path/to/rust/code
 Create a `config.yaml` file with your settings:
 
 ```yaml
-# Model settings
-model_name: "codellama/CodeLlama-7b-hf"
-max_sequence_length: 2048
-vocab_size: 32000
+# Model configuration
+model:
+  name: "codellama/CodeLlama-7b-hf"
+  vocab_size: 50000
+  max_sequence_length: 256
 
-# Training settings
-batch_size: 1
-num_workers: 1
-eval_split: 0.1
-seed: 42
+# Training configuration
+training:
+  batch_size: 2
+  num_workers: 8
+  epochs: 3
+  gradient_accumulation_steps: 1
+  eval_split: 0.1
+  seed: 42
 
 # Paths
-output_dir: "./output"
-cache_dir: "./cache"
-log_file: "./training.log"
+paths:
+  output_dir: "./output"
+  cache_dir: "~/.cache/huggingface"
 
 # Logging
-log_level: "INFO"
-wandb_project: "your-project-name"
+logging:
+  level: "INFO"
+  file: "logs/training.log"
+
+# Weights & Biases
+wandb:
+  project: "your-project-name"
+
+# GPU Configuration
+gpu:
+  device: "cuda"
+  precision: "fp16"
+  memory_efficient: true
+```
+
+#### Configuration Precedence
+
+The tool supports both YAML configuration files and command-line arguments. When both are provided:
+
+1. Command-line arguments take precedence over the config file settings
+2. Any settings not specified in command-line arguments will fall back to the config file values
+3. If a setting is not specified in either place, default values will be used
+
+For example:
+```bash
+# This will use batch_size=4 from CLI, but keep other settings from config.yaml
+code-preprocess --config config.yaml --code-path /path/to/code --batch-size 4
+```
+
+Available CLI arguments match the configuration file options and can be viewed with:
+```bash
+code-preprocess --help
 ```
 
 ### Development Tools
