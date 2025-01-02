@@ -1,4 +1,5 @@
 """Tests for configuration functionality."""
+
 import os
 from typing import TYPE_CHECKING, Any, Dict, Union
 

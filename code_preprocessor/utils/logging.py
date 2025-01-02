@@ -1,4 +1,5 @@
 """Logging configuration for the code preprocessor."""
+
 import logging
 import os
 from typing import Optional

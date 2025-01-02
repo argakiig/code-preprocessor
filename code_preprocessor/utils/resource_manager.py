@@ -1,4 +1,5 @@
 """Resource management utilities for the code preprocessor."""
+
 import os
 import tempfile
 from contextlib import contextmanager

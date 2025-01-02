@@ -1,4 +1,5 @@
 """Common test fixtures and configuration for code_preprocessor tests."""
+
 import os
 from typing import TYPE_CHECKING, Any, Generator
 
