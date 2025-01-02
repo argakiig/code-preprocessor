@@ -42,7 +42,7 @@ def test_config_validation_invalid_path() -> None:
         PreprocessorConfig(code_path="/nonexistent/path")
 
 
-@pytest.mark.parametrize(  # type: ignore[misc]
+@pytest.mark.parametrize(
     "field,value,error_msg",
     [
         ("vocab_size", 0, "vocab_size must be positive"),

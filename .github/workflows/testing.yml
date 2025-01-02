@@ -88,8 +88,8 @@ jobs:
       - uses: actions/checkout@v4.1.1
       - name: Run linters
         run: |
-          flake8 .
-          pylint . /
+          flake8 ./code_preprocessor
+          pylint ./code_preprocessor
 
   type-check:
     name: Type Checking

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
 
-@pytest.fixture(scope="function")  # type: ignore[misc]
+@pytest.fixture(scope="function")
 def mock_env(monkeypatch: "MonkeyPatch") -> None:
     """Set up a clean test environment with minimal environment variables.
 
@@ -20,7 +20,7 @@ def mock_env(monkeypatch: "MonkeyPatch") -> None:
     monkeypatch.setenv("TOKENIZERS_PARALLELISM", "false")
 
 
-@pytest.fixture(scope="function")  # type: ignore[misc]
+@pytest.fixture(scope="function")
 def test_data_dir(tmp_path: Any) -> Generator[str, None, None]:
     """Create a temporary directory with test data structure.
 
