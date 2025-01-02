@@ -8,9 +8,11 @@ This module provides a data structure for representing code blocks that:
 - Handles content cleaning and formatting
 """
 
+from dataclasses import dataclass
 from typing import Dict, Optional
 
 
+@dataclass
 class CodeBlock:
     """Represents a block of code with its documentation and location information.
 
@@ -23,43 +25,38 @@ class CodeBlock:
 
     This class is used throughout the codebase to represent parsed code
     segments and their metadata in a consistent format.
+
+    Attributes:
+        block_type: Type of the code block (e.g., function, class, trait)
+        name: Name of the code block (e.g., function name, class name)
+        full_path: Full path to the code block in the module hierarchy
+        content: The actual code content without documentation
+        start_line: Starting line number in the source file (1-based)
+        end_line: Ending line number in the source file (1-based)
+        doc: Optional documentation string (comments, docstrings)
+        doc_start_line: Optional starting line number of documentation (1-based)
+        doc_end_line: Optional ending line number of documentation (1-based)
     """
 
-    def __init__(
-        self,
-        block_type: str,
-        name: str,
-        full_path: str,
-        content: str,
-        start_line: int,
-        end_line: int,
-        doc: Optional[str] = None,
-        doc_start_line: Optional[int] = None,
-        doc_end_line: Optional[int] = None,
-    ) -> None:
-        """Initialize a CodeBlock instance.
+    block_type: str
+    name: str
+    full_path: str
+    content: str
+    start_line: int
+    end_line: int
+    doc: Optional[str] = None
+    doc_start_line: Optional[int] = None
+    doc_end_line: Optional[int] = None
 
-        Args:
-            block_type: Type of the code block (e.g., function, class, trait)
-            name: Name of the code block (e.g., function name, class name)
-            full_path: Full path to the code
-                block in the module hierarchy (e.g., crate::module::item)
-            content: The actual code content without documentation
-            start_line: Starting line number in the source file (1-based)
-            end_line: Ending line number in the source file (1-based)
-            doc: Optional documentation string (comments, docstrings)
-            doc_start_line: Optional starting line number of documentation (1-based)
-            doc_end_line: Optional ending line number of documentation (1-based)
+    def __post_init__(self) -> None:
+        """Post-initialization processing to clean content and doc.
+
+        This method is automatically called after the dataclass initialization
+        to perform any necessary cleanup of the content and documentation.
         """
-        self.block_type = block_type
-        self.name = name
-        self.full_path = full_path
-        self.content = self._clean_content(content, doc)
-        self.start_line = start_line
-        self.end_line = end_line
-        self.doc = doc.strip() if doc else None
-        self.doc_start_line = doc_start_line
-        self.doc_end_line = doc_end_line
+        self.content = self._clean_content(self.content, self.doc)
+        if self.doc:
+            self.doc = self.doc.strip()
 
     def _clean_content(self, content: str, doc: Optional[str]) -> str:
         """Remove documentation from the content if it exists at the start.

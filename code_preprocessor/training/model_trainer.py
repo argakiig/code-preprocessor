@@ -58,6 +58,7 @@ class ModelTrainer:
 
     def __init__(
         self,
+        *,  # Force keyword-only arguments
         model_name_or_path: str,
         tokenizer: RustTokenizer,
         output_dir: str,
